@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nadeline AI</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            color: gold;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        #intro {
+            font-size: 2em;
+            margin-top: 20%;
+            animation: shake 1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        #chat {
+            display: none;
+            margin-top: 50px;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid gold;
+            border-radius: 10px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        input {
+            width: 60%;
+        }
+        button {
+            background: gold;
+            color: black;
+            cursor: pointer;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div id="intro">⚡ Waking up systems...</div>
+    <div id="chat">
+        <div id="messages"></div>
+        <input type="text" id="userInput" placeholder="Ask me anything...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <audio id="bgMusic" autoplay loop>
+        <source src="https://cdn.pixabay.com/audio/2023/03/14/audio_893b9c21d3.mp3" type="audio/mp3">
+    </audio>
+
+    <canvas id="particles"></canvas>
+
+    <script>
+        // Particle background
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+            }
+            update() {
+                this.y += this.speedY;
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = 'gold';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        function init() {
+            particlesArray = [];
+            for (let i = 0; i < 100; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+        init();
+        animate();
+
+        // Intro to Chat switch
+        setTimeout(() => {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('chat').style.display = 'block';
+        }, 5000);
+
+        // Nadeline Data
+        const nadelineData = {
+            "green towers": "We have sustainable architecture with PBK7 carbon black, and algae insulation on rooftops!",
+            "energy": "Pure Energy Holdings handles solar and tidal energy for Nadeline.",
+            "solar garden": "Radiant Acres is the solar garden of Nadeline.",
+            "transport": "Eco-Wheels combines ZEVs and metro for clean mobility.",
+            "agriculture": "Eco-Grow Domes allow year-round greenhouse farming!",
+            "water": "Hydro-Dome Solutions handle desalination and distillation.",
+            "mangrove": "Mangroves capture carbon emissions naturally under coastal beds!",
+            "carbo capture": "Blue hydrogen tech absorbs CO2 and stores underground.",
+            "waste": "Enviro-Cycle System sorts and processes waste sustainably.",
+            "AI monitoring": "NAD-Guard AI combines Heli Bot and NAD Bot for safe living!",
+            "sdg goals": "We implement SDG 6,7,9,11,12,13 and ensure Good Health (Goal 3).",
+            "climate": "Nadeline is built with resilience to climate change!"
+        };
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput').value.trim();
+            if (!input) return;
+            
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<div><b>You:</b> ${input}</div>`;
+
+            let reply = "";
+
+            // Check if user asking about Nadeline
+            let found = false;
+            for (const key in nadelineData) {
+                if (input.toLowerCase().includes(key)) {
+                    reply = nadelineData[key];
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                // Use OpenAI API for normal chat
+                reply = await fetchOpenAI(input);
+            }
+
+            messagesDiv.innerHTML += `<div><b>Nadeline AI:</b> ${reply}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            document.getElementById('userInput').value = '';
+        }
+
+        async function fetchOpenAI(userInput) {
+            const apiKey = "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"; // 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
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${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}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{"role": "user", "content": userInput}]
+                })
+            });
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+    </script>
+</body>
+</html>
